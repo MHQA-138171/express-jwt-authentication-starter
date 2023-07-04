@@ -14,20 +14,21 @@ require('dotenv').config();
 var app = express();
 
 // Configures the database and opens a global connection that can be used in any module with `mongoose.connection`
-require('./config/database');
+const { mongoConnect } = require('./config/mongo');
 
 // Must first load the models
 require('./models/user');
 
 // Pass the global passport object into the configuration function
 require('./config/passport')(passport);
-
+// env variable config
+const PORT = process.env.PORT || 3000
 // This will initialize the passport object on every request
 app.use(passport.initialize());
 
 // Instead of using body-parser middleware, use the new Express implementation of the same thing
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 // Allows our Angular application to make HTTP requests to Express application
 app.use(cors());
@@ -50,4 +51,9 @@ app.use(require('./routes'));
  */
 
 // Server listens on http://localhost:3000
-app.listen(3000);
+async function startServer() {
+    await mongoConnect();
+    app.listen(PORT, () => {
+        console.log(`listening on port ${PORT}...`)
+    })
+}
